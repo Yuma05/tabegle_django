@@ -1,4 +1,5 @@
 import asyncio
+import copy
 import functools
 
 import googlemaps
@@ -121,20 +122,24 @@ class RegisterNewShop:
                 name = name_element.text
                 tabelog_rating = float(tabelog_rating_element.text)
                 tabelog_review_num = int(tabelog_review_num_element.text)
-                url = name_element.get('href')
+                shop_url = name_element.get('href')
                 img_src = img_src_element.get('data-original')
             except:
                 continue
 
             self.shops.append(
                 {'name': name, 'tabelog_rating': tabelog_rating, 'tabelog_review_num': tabelog_review_num,
-                 'url': url, 'img_src': img_src})
+                 'url': shop_url, 'img_src': img_src})
 
     def get_google_data(self, limit=20):
-        for shop in self.shops:
+
+        for shop in copy.deepcopy(self.shops):
             search_shop = Shop.objects.filter(url=shop['url']).first()
             # すでに店舗が登録済みで一ヶ月以内に更新がある場合 検索対象から外す
             if search_shop is not None and not search_shop.is_more_one_month():
+                new_search, _ = Search.objects.get_or_create(place_code=self.search_query['place_code'],
+                                                             category_code=self.search_query['category_code'])
+                new_search.shops.add(search_shop)
                 self.shops.remove(shop)
 
         loop = asyncio.get_event_loop()
@@ -169,17 +174,19 @@ class RegisterNewShop:
         shop['address'] = address
 
     def register_new_data(self):
-        created_shops = [Shop.objects.create(name=shop['name'], img_src=shop['url'], url=shop['url'],
+        if len(self.shops) == 0:
+            return
+
+        created_shops = [Shop.objects.create(name=shop['name'], img_src=shop['img_src'], url=shop['url'],
                                              address=shop['address'],
                                              google_rating=shop['google_rating'],
                                              google_review_num=shop['google_review_num'],
                                              tabelog_rating=shop['tabelog_rating'],
                                              tabelog_review_num=shop['tabelog_review_num'],
                                              total_rating=4) for shop in self.shops]
-
-        new_search = Search.objects.create(place_code=self.search_query['place_code'],
-                                           category_code=self.search_query['category_code'])
-        new_search.shops.set(created_shops)
+        new_search, _ = Search.objects.get_or_create(place_code=self.search_query['place_code'],
+                                                     category_code=self.search_query['category_code'])
+        new_search.shops.add(*created_shops)
 
 
 class IncorrectSearchCodeException(Exception):
