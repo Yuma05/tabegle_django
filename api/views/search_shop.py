@@ -1,6 +1,7 @@
 import asyncio
 import copy
 import functools
+from decimal import Decimal, ROUND_HALF_UP
 
 import googlemaps
 import requests
@@ -75,7 +76,7 @@ class RegisterNewShop:
         self.shops = []
         self.google_maps_client = googlemaps.Client(key="AIzaSyCd6oVwry-gg8aEaUonAYL4xpVGXm1YjsY")
 
-    def get_tabelog_data(self, page_num=1, limit=3):
+    def get_tabelog_data(self, page_num=3, limit=3):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
 
@@ -131,7 +132,7 @@ class RegisterNewShop:
                 {'name': name, 'tabelog_rating': tabelog_rating, 'tabelog_review_num': tabelog_review_num,
                  'url': shop_url, 'img_src': img_src})
 
-    def get_google_data(self, limit=20):
+    def get_google_data(self, limit=60):
 
         for shop in copy.deepcopy(self.shops):
             search_shop = Shop.objects.filter(url=shop['url']).first()
@@ -177,13 +178,18 @@ class RegisterNewShop:
         if len(self.shops) == 0:
             return
 
-        created_shops = [Shop.objects.create(name=shop['name'], img_src=shop['img_src'], url=shop['url'],
-                                             address=shop['address'],
-                                             google_rating=shop['google_rating'],
-                                             google_review_num=shop['google_review_num'],
-                                             tabelog_rating=shop['tabelog_rating'],
-                                             tabelog_review_num=shop['tabelog_review_num'],
-                                             total_rating=4) for shop in self.shops]
+        created_shops = []
+        for shop in self.shops:
+            total_rating = (shop['tabelog_rating'] + shop['google_rating'] * 2) / 3
+            total_rating = float(Decimal(total_rating).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP))
+            created_shops.append(Shop.objects.create(name=shop['name'], img_src=shop['img_src'], url=shop['url'],
+                                                     address=shop['address'],
+                                                     google_rating=shop['google_rating'],
+                                                     google_review_num=shop['google_review_num'],
+                                                     tabelog_rating=shop['tabelog_rating'],
+                                                     tabelog_review_num=shop['tabelog_review_num'],
+                                                     total_rating=total_rating))
+
         new_search, _ = Search.objects.get_or_create(place_code=self.search_query['place_code'],
                                                      category_code=self.search_query['category_code'])
         new_search.shops.add(*created_shops)
