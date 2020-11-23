@@ -1,0 +1,1 @@
+web: gunicorn tabegle.wsgi --log-file -
