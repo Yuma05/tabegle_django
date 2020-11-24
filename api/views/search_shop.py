@@ -1,6 +1,7 @@
 import asyncio
 import copy
 import functools
+import os
 from decimal import Decimal, ROUND_HALF_UP
 
 import googlemaps
@@ -74,7 +75,7 @@ class RegisterNewShop:
     def __init__(self, search_query):
         self.search_query = search_query
         self.shops = []
-        self.google_maps_client = googlemaps.Client(key="AIzaSyCd6oVwry-gg8aEaUonAYL4xpVGXm1YjsY")
+        self.google_maps_client = googlemaps.Client(key=os.environ['PLACE_API_KEY'])
 
     def get_tabelog_data(self, page_num=3, limit=3):
         loop = asyncio.new_event_loop()
