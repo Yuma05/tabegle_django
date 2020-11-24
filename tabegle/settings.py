@@ -146,6 +146,8 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
 
+CSRF_TRUSTED_ORIGINS = ['tabegle.netlify.app']
+
 # メールはコンソールに表示
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
