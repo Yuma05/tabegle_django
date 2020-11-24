@@ -146,7 +146,10 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
 
-CSRF_TRUSTED_ORIGINS = ['tabegle.netlify.app']
+CSRF_TRUSTED_ORIGINS = [
+    'tabegle.netlify.app',
+    'tabegle.tk'
+]
 
 # メールはコンソールに表示
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
@@ -154,6 +157,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 db_from_env = dj_database_url.config(conn_max_age=500)
 DATABASES['default'].update(db_from_env)
 
+# ローカル設定ファイルがあれば読み込み
 try:
     from .local_settings import *
 except ImportError:
