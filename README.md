@@ -6,7 +6,9 @@ Googleと食べログのレビューを比較できるサービスです．
 
 また，それぞれのサービスから総合的なおすすめ度を算出しています．
 
-[tabegle](https://tabegle.tk)
+[Tabegle](https://tabegle.tk)
+アクセスできない場合は
+[こちら](https://tabegle.netlify.app)
 
 ## 機能
 
