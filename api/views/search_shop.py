@@ -44,7 +44,7 @@ class SearchShop(generics.ListAPIView):
             register = RegisterNewShop(search_query)
             register.get_tabelog_data()
             if len(register.shops) == 0:
-                return Response({"message": "Shop not found"})
+                return Response({"message": "Shop not found", "shops": []})
             register.get_google_data()
             register.register_new_data()
             queryset = self.get_queryset(**search_query)
