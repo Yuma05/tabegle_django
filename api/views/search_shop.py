@@ -74,6 +74,7 @@ class SearchShop(generics.ListAPIView):
 class RegisterNewShop:
     def __init__(self, search_query):
         self.search_query = search_query
+        self.place_name = self._get_place_name()
         self.shops = []
         self.google_maps_client = googlemaps.Client(key=os.environ['PLACE_API_KEY'])
 
@@ -134,7 +135,6 @@ class RegisterNewShop:
                  'url': shop_url, 'img_src': img_src})
 
     def get_google_data(self, limit=60):
-
         for shop in copy.deepcopy(self.shops):
             search_shop = Shop.objects.filter(url=shop['url']).first()
             # すでに店舗が登録済みで一ヶ月以内に更新がある場合 検索対象から外す
@@ -159,7 +159,8 @@ class RegisterNewShop:
 
     async def _request_google_places(self, shop):
         loop = asyncio.get_event_loop()
-        func = functools.partial(self.google_maps_client.places, shop['name'], language='ja')
+        search_word = f"{self.place_name} {shop['name']}"
+        func = functools.partial(self.google_maps_client.places, search_word, language='ja')
         result = await loop.run_in_executor(None, func)
 
         # 情報が不足している場合は店舗情報を削除
@@ -194,6 +195,13 @@ class RegisterNewShop:
         new_search, _ = Search.objects.get_or_create(place_code=self.search_query['place_code'],
                                                      category_code=self.search_query['category_code'])
         new_search.shops.add(*created_shops)
+
+    def _get_place_name(self):
+        queryset = Place.objects.filter(place_code=self.search_query['place_code'])
+        if queryset.exists():
+            return queryset.first().name
+        else:
+            return '日本'
 
 
 class IncorrectSearchCodeException(Exception):
