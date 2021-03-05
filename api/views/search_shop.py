@@ -119,7 +119,7 @@ class RegisterNewShop:
             name_element = element.find("a", class_="list-rst__rst-name-target")
             tabelog_rating_element = element.find("span", class_="list-rst__rating-val")
             tabelog_review_num_element = element.find("em", class_="list-rst__rvw-count-num")
-            img_src_element = element.find("img", class_="cpy-main-image")
+            img_src_element = element.select_one("div.list-rst__rst-photo.js-rst-image-wrap > div > div > a > div")
 
             try:
                 name = name_element.text
